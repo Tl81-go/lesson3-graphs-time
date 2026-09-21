@@ -186,6 +186,7 @@ st.write(
 )
 
 
+
 # ============================================================
 # 그래프 4
 # ============================================================
@@ -193,25 +194,36 @@ st.divider()
 
 st.header("그래프 4. 기간 전체 일관객 TOP 10")
 
-# 영화별 기간 전체 일관객 합계
+# 영화별 기간 전체 일관객 합계와 10위권 등장 날짜 수 계산
 movie_summary = (
     df.groupby("영화명")
-    .agg(
-        일관객_합계=("일관객", "sum"),
-        10위권_등장_일수=("날짜", "nunique")
-    )
+    .agg({
+        "일관객": "sum",
+        "날짜": "nunique"
+    })
     .reset_index()
 )
 
-# 일관객 합계가 많은 순으로 정렬하여 TOP 10
+# 열 이름 변경
+movie_summary = movie_summary.rename(
+    columns={
+        "일관객": "일관객_합계",
+        "날짜": "10위권_등장_일수"
+    }
+)
+
+# 일관객 합계가 많은 순으로 TOP 10
 top10_movies = (
     movie_summary
     .sort_values("일관객_합계", ascending=False)
     .head(10)
 )
 
-# 가로 막대그래프에서 위쪽부터 관객이 많은 영화가 나오도록
-top10_movies = top10_movies.sort_values("일관객_합계", ascending=True)
+# 가로 막대그래프에서 관객이 많은 영화가 위에 오도록
+top10_movies = top10_movies.sort_values(
+    "일관객_합계",
+    ascending=True
+)
 
 fig4 = px.bar(
     top10_movies,
@@ -237,10 +249,7 @@ fig4.update_traces(
 
 fig4.update_layout(
     xaxis_title="기간 전체 일관객 합계(명)",
-    yaxis_title="영화",
-    yaxis={
-        "categoryorder": "total ascending"
-    }
+    yaxis_title="영화"
 )
 
 st.plotly_chart(fig4, use_container_width=True)
@@ -261,3 +270,4 @@ st.header("그래프 5. 앞으로 추가할 그래프")
 st.info("다음 그래프를 이 구역 아래에 추가하세요.")
 
 # 여기에 다섯 번째 그래프를 추가합니다.
+
