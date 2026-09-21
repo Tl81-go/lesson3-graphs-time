@@ -1,4 +1,3 @@
-```python
 import streamlit as st
 import pandas as pd
 import plotly.express as px
@@ -43,6 +42,11 @@ def load_data():
 
 
 df = load_data()
+
+
+# ========================================
+# 그래프 1. 영화별 일관객 변화
+# ========================================
 
 st.header("1. 시간에 따른 영화별 일관객 변화")
 
@@ -97,11 +101,71 @@ st.markdown(
     "영화를 선택하면 시간에 따라 하루 관객수가 어떻게 변했는지 확인할 수 있습니다."
 )
 
+
+# ========================================
+# 그래프 2. 일관객 합계 상위 5편
+# ========================================
+
 st.divider()
 
-st.header("2. 다음 그래프")
+st.header("2. 일관객 합계가 가장 큰 5편의 변화")
 
-st.info(
-    "앞으로 시간에 따른 다른 영화 데이터 그래프를 이 구역에 추가할 수 있습니다."
+# 영화별 기간 내 일관객 합계 계산
+movie_totals = (
+    df.groupby("영화명", as_index=False)["일관객"]
+    .sum()
+    .sort_values("일관객", ascending=False)
+)
+
+# 상위 5편의 영화명
+top5_movies = movie_totals.head(5)["영화명"].tolist()
+
+# 상위 5편의 날짜별 데이터만 추출
+top5_df = df[
+    df["영화명"].isin(top5_movies)
+].copy()
+
+top5_df = top5_df.sort_values(
+    ["영화명", "날짜"]
+)
+
+fig2 = px.line(
+    top5_df,
+    x="날짜",
+    y="일관객",
+    color="영화명",
+    markers=True,
+    title="일관객 합계 상위 5편의 날짜별 일관객",
+    labels={
+        "날짜": "날짜",
+        "일관객": "일일 관객수",
+        "영화명": "영화"
+    }
+)
+
+fig2.update_traces(
+    hovertemplate=(
+        "영화: %{fullData.name}<br>"
+        "날짜: %{x|%Y-%m-%d}<br>"
+        "관객수: %{y:,}명"
+        "<extra></extra>"
+    )
+)
+
+fig2.update_layout(
+    hovermode="x unified",
+    xaxis_title="날짜",
+    yaxis_title="일일 관객수(명)",
+    legend_title="영화"
+)
+
+st.plotly_chart(
+    fig2,
+    use_container_width=True
+)
+
+st.markdown(
+    "**이 그래프로 알 수 있는 것:** "
+    "이 기간 동안 일관객 합계가 가장 큰 5편이 날짜에 따라 어떤 관객수 변화를 보였는지 비교할 수 있습니다."
 )
 ```
